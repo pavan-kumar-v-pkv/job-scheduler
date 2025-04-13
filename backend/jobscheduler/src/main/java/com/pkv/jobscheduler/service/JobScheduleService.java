@@ -4,6 +4,7 @@ import com.pkv.jobscheduler.model.*;
 import com.pkv.jobscheduler.repository.JobScheduleRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -25,8 +26,10 @@ public class JobScheduleService {
     }
 
     public JobSchedule scheduleJob(JobRequestDTO dto) {
-        ZonedDateTime time = ZonedDateTime.parse(dto.getScheduledTime())
-                                          .withZoneSameInstant(ZoneId.of(dto.getTimeZone()));
+        ZonedDateTime time = ZonedDateTime.of(
+                LocalDateTime.parse(dto.getScheduledTime()), // This parses "2025-04-13T22:35:00"
+                ZoneId.of(dto.getTimeZone()) // e.g., "Asia/Kolkata"
+        );
 
         JobSchedule job = JobSchedule.builder()
                 .jobName(dto.getJobName())
