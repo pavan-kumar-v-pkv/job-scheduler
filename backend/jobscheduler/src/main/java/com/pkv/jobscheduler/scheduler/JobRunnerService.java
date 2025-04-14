@@ -25,7 +25,8 @@ public class JobRunnerService {
         List<JobSchedule> jobs = jobRepo.findAll();
 
         for (JobSchedule job : jobs) {
-            if (job.getStatus() == JobStatus.PENDING) {
+            // skip recurring jobs, handle elsewhere
+            if (job.getStatus() == JobStatus.PENDING && job.getJobType() != JobType.RECURRING) {
                 System.out.println("⏳ Evaluating job ID: " + job.getId() + ", Type: " + job.getJobType());
                 System.out.println("Scheduled Time: " + job.getScheduledTime() +
                         " | Current Time: " + ZonedDateTime.now(job.getScheduledTime().getZone()));

@@ -2,6 +2,7 @@ package com.pkv.jobscheduler.service;
 
 import com.pkv.jobscheduler.model.*;
 import com.pkv.jobscheduler.repository.JobScheduleRepository;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,17 +27,30 @@ public class JobScheduleService {
     }
 
     public JobSchedule scheduleJob(JobRequestDTO dto) {
-        ZonedDateTime time = ZonedDateTime.of(
-                LocalDateTime.parse(dto.getScheduledTime()), // This parses "2025-04-13T22:35:00"
-                ZoneId.of(dto.getTimeZone()) // e.g., "Asia/Kolkata"
-        );
+
+        ZonedDateTime time = null;
+
+        // ✅ Handle only for non-recurring jobs
+        if (dto.getJobType() != JobType.RECURRING) {
+            time = ZonedDateTime.of(
+                    LocalDateTime.parse(dto.getScheduledTime()),
+                    ZoneId.of(dto.getTimeZone())
+            );
+        }
+
+        // ✅ Validate cron expression for recurring jobs
+        if (dto.getJobType() == JobType.RECURRING) {
+            if (dto.getCronExpression() == null || !CronExpression.isValidExpression(dto.getCronExpression())) {
+                throw new IllegalArgumentException("Invalid cron expression for recurring job.");
+            }
+        }
 
         JobSchedule job = JobSchedule.builder()
                 .jobName(dto.getJobName())
                 .jobType(dto.getJobType())
                 .status(JobStatus.PENDING)
                 .timeZone(dto.getTimeZone())
-                .scheduledTime(time)
+                .scheduledTime(time) // Will be null for RECURRING
                 .binaryPath(dto.getBinaryPath())
                 .kafkaTopic(dto.getKafkaTopic())
                 .metadata(dto.getMetadata())
