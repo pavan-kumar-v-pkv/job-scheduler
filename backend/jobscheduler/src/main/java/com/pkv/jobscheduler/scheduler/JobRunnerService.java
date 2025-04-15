@@ -25,53 +25,88 @@ public class JobRunnerService {
         List<JobSchedule> jobs = jobRepo.findAll();
 
         for (JobSchedule job : jobs) {
-            // skip recurring jobs, handle elsewhere
-            if (job.getStatus() == JobStatus.PENDING && job.getJobType() != JobType.RECURRING) {
-                System.out.println("⏳ Evaluating job ID: " + job.getId() + ", Type: " + job.getJobType());
-                System.out.println("Scheduled Time: " + job.getScheduledTime() +
-                        " | Current Time: " + ZonedDateTime.now(job.getScheduledTime().getZone()));
+            if (job.getStatus() != JobStatus.PENDING || job.getJobType() == JobType.RECURRING) {
+                continue; // ❌ Skip non-pending or recurring jobs
+            }
 
-                if (shouldRunNow(job)) {
-                    try {
-                        job.setStatus(JobStatus.RUNNING);
-                        jobRepo.save(job);
+            // ✅ Handle IMMEDIATE job type FIRST
+            if (job.getJobType() == JobType.IMMEDIATE) {
+                System.out.println("⚡ Running IMMEDIATE job ID: " + job.getId());
 
-                        if (job.getJobType() == JobType.DELAYED) {
-                            kafkaTemplate.send(job.getKafkaTopic(), job.getMetadata())
-                                    .whenComplete((result, ex) -> {
-                                        if (ex == null) {
-                                            System.out.println("✅ Kafka message sent for job ID: " + job.getId()
-                                                    + " to topic: " + job.getKafkaTopic());
-                                            System.out.println("📨 Message: " + job.getMetadata());
+                try {
+                    job.setStatus(JobStatus.RUNNING);
+                    jobRepo.save(job);
 
-                                            job.setStatus(JobStatus.SUCCESS);
-                                        } else {
-                                            System.out.println("❌ Kafka send failed for job ID: " + job.getId());
-                                            ex.printStackTrace();
+                    kafkaTemplate.send(job.getKafkaTopic(), job.getMetadata())
+                            .whenComplete((result, ex) -> {
+                                if (ex == null) {
+                                    System.out.println("✅ [IMMEDIATE] Kafka message sent for job ID: " + job.getId()
+                                            + " to topic: " + job.getKafkaTopic());
+                                    System.out.println("📨 Message: " + job.getMetadata());
 
-                                            job.setStatus(JobStatus.FAILED);
-                                        }
+                                    job.setStatus(JobStatus.SUCCESS);
+                                } else {
+                                    System.out.println("❌ Kafka send failed for job ID: " + job.getId());
+                                    ex.printStackTrace();
+                                    job.setStatus(JobStatus.FAILED);
+                                }
+                                jobRepo.save(job);
+                            });
 
-                                        // Save status change
-                                        jobRepo.save(job);
-                                    });
-
-                        } else {
-                            System.out.println("🚀 Simulating binary run: " + job.getBinaryPath());
-
-                            job.setStatus(JobStatus.SUCCESS);
-                            jobRepo.save(job);
-                        }
-
-                    } catch (Exception e) {
-                        job.setStatus(JobStatus.FAILED);
-                        jobRepo.save(job);
-                        System.out.println("❌ Job ID: " + job.getId() + " failed with error: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                } else {
-                    System.out.println("⌛ Skipping job ID: " + job.getId() + " — not yet time to run.");
+                } catch (Exception e) {
+                    job.setStatus(JobStatus.FAILED);
+                    jobRepo.save(job);
+                    System.out.println("❌ Job ID: " + job.getId() + " failed with error: " + e.getMessage());
+                    e.printStackTrace();
                 }
+
+                continue; // ✅ IMMEDIATE handled, skip rest
+            }
+
+            // ✅ Handle DELAYED and ONE_TIME jobs
+            System.out.println("⏳ Evaluating job ID: " + job.getId() + ", Type: " + job.getJobType());
+            System.out.println("Scheduled Time: " + job.getScheduledTime() +
+                    " | Current Time: " + ZonedDateTime.now(job.getScheduledTime().getZone()));
+
+            if (shouldRunNow(job)) {
+                try {
+                    job.setStatus(JobStatus.RUNNING);
+                    jobRepo.save(job);
+
+                    if (job.getJobType() == JobType.DELAYED) {
+                        kafkaTemplate.send(job.getKafkaTopic(), job.getMetadata())
+                                .whenComplete((result, ex) -> {
+                                    if (ex == null) {
+                                        System.out.println("✅ Kafka message sent for job ID: " + job.getId()
+                                                + " to topic: " + job.getKafkaTopic());
+                                        System.out.println("📨 Message: " + job.getMetadata());
+
+                                        job.setStatus(JobStatus.SUCCESS);
+                                    } else {
+                                        System.out.println("❌ Kafka send failed for job ID: " + job.getId());
+                                        ex.printStackTrace();
+
+                                        job.setStatus(JobStatus.FAILED);
+                                    }
+
+                                    jobRepo.save(job);
+                                });
+
+                    } else {
+                        System.out.println("🚀 Simulating binary run: " + job.getBinaryPath());
+
+                        job.setStatus(JobStatus.SUCCESS);
+                        jobRepo.save(job);
+                    }
+
+                } catch (Exception e) {
+                    job.setStatus(JobStatus.FAILED);
+                    jobRepo.save(job);
+                    System.out.println("❌ Job ID: " + job.getId() + " failed with error: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("⌛ Skipping job ID: " + job.getId() + " — not yet time to run.");
             }
         }
     }

@@ -31,7 +31,8 @@ public class JobScheduleService {
         ZonedDateTime time = null;
 
         // ✅ Handle only for non-recurring jobs
-        if (dto.getJobType() != JobType.RECURRING) {
+        // if (dto.getJobType() != JobType.RECURRING)`
+        if (dto.getJobType() == JobType.DELAYED || dto.getJobType() == JobType.ONE_TIME) {
             time = ZonedDateTime.of(
                     LocalDateTime.parse(dto.getScheduledTime()),
                     ZoneId.of(dto.getTimeZone())
