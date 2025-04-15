@@ -35,8 +35,7 @@ public class JobScheduleService {
         if (dto.getJobType() == JobType.DELAYED || dto.getJobType() == JobType.ONE_TIME) {
             time = ZonedDateTime.of(
                     LocalDateTime.parse(dto.getScheduledTime()),
-                    ZoneId.of(dto.getTimeZone())
-            );
+                    ZoneId.of(dto.getTimeZone()));
         }
 
         // ✅ Validate cron expression for recurring jobs
@@ -62,6 +61,33 @@ public class JobScheduleService {
         return jobRepo.save(job);
     }
 
+    public JobSchedule updateJob(Long id, JobRequestDTO dto) {
+        JobSchedule job = jobRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+    
+        job.setJobName(dto.getJobName());
+        job.setJobType(dto.getJobType());
+        job.setTimeZone(dto.getTimeZone());
+        job.setKafkaTopic(dto.getKafkaTopic());
+        job.setMetadata(dto.getMetadata());
+    
+        if (dto.getScheduledTime() != null && dto.getTimeZone() != null) {
+            LocalDateTime localDateTime = LocalDateTime.parse(dto.getScheduledTime());
+            ZoneId zoneId = ZoneId.of(dto.getTimeZone());
+            ZonedDateTime newScheduledTime = ZonedDateTime.of(localDateTime, zoneId);
+    
+            if (!newScheduledTime.equals(job.getScheduledTime())) {
+                job.setScheduledTime(newScheduledTime);
+                job.setStatus(JobStatus.PENDING); // Reset status if time was updated
+            }
+        }
+    
+        job.setCronExpression(dto.getCronExpression());
+        job.setBinaryPath(dto.getBinaryFileName());
+    
+        return jobRepo.save(job);
+    }
+    
     public List<JobSchedule> getAllJobs() {
         return jobRepo.findAll();
     }
