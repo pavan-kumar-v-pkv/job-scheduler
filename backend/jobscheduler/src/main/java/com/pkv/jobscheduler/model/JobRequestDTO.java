@@ -13,8 +13,10 @@ public class JobRequestDTO {
     private JobType jobType;
     private String timeZone; // E.g., Asia/Kolkata
     private String scheduledTime; // ISO string, to be converted to ZOnedDateTime
-    private String binaryPath;
+    // private String binaryPath;
     private String kafkaTopic;
     private String metadata;
     private String cronExpression; //optional
+    private String binaryFileName; // new field to store uploaded file name
+
 }

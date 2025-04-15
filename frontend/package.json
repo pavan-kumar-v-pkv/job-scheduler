@@ -10,6 +10,7 @@
     "tailwind": "./node_modules/.bin/tailwindcss init -p"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.1",
     "axios": "^1.8.4",
     "next": "15.3.0",
     "react": "^19.0.0",

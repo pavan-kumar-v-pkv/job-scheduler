@@ -93,10 +93,31 @@ public class JobRunnerService {
                                 });
 
                     } else {
-                        System.out.println("🚀 Simulating binary run: " + job.getBinaryPath());
+                        if (job.getBinaryPath() != null) {
+                            String filePath = "/tmp/" + job.getBinaryPath(); // Location where MinIO saves the file
 
-                        job.setStatus(JobStatus.SUCCESS);
+                            System.out.println("🚀 Running uploaded binary: " + filePath);
+                            ProcessBuilder pb = new ProcessBuilder("sh", filePath);
+                            pb.inheritIO(); // Show output in console
+
+                            try {
+                                Process process = pb.start();
+                                int exitCode = process.waitFor();
+                                System.out.println("✅ Script finished with exit code: " + exitCode);
+
+                                job.setStatus(exitCode == 0 ? JobStatus.SUCCESS : JobStatus.FAILED);
+                            } catch (Exception e) {
+                                System.out.println("❌ Binary execution failed: " + e.getMessage());
+                                e.printStackTrace();
+                                job.setStatus(JobStatus.FAILED);
+                            }
+                        } else {
+                            System.out.println("⚠️ No binary path provided.");
+                            job.setStatus(JobStatus.SUCCESS);
+                        }
+
                         jobRepo.save(job);
+
                     }
 
                 } catch (Exception e) {

@@ -52,7 +52,7 @@ public class JobScheduleService {
                 .status(JobStatus.PENDING)
                 .timeZone(dto.getTimeZone())
                 .scheduledTime(time) // Will be null for RECURRING
-                .binaryPath(dto.getBinaryPath())
+                .binaryPath(dto.getBinaryFileName())
                 .kafkaTopic(dto.getKafkaTopic())
                 .metadata(dto.getMetadata())
                 .cronExpression(dto.getCronExpression())
