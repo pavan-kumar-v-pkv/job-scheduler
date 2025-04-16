@@ -102,27 +102,30 @@ This launches:
 
 ```bash
 cd backend/jobscheduler
-./mvnw spring-boot:run
+mvn clean install
+java -jar target/jobscheduler-0.0.1-SNAPSHOT.jar
 ```
 
 Alternatively:
 
 ```bash
-mvn clean install
-java -jar target/jobscheduler-0.0.1-SNAPSHOT.jar
+./mvnw spring-boot:run
 ```
 
 - Backend will be available at: http://localhost:8080
 
 ### 4. Start Frontend
 
+#### 4.1 Setup Node.js (only once):
+
 ```bash
 cd frontend
-
-# (Recommended) Ensure correct Node.js version
 nvm install      
 nvm use     
+```
 
+#### 4.2 Install dependencies and run:
+```bash
 npm install
 npm run dev
 ```
