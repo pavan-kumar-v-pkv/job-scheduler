@@ -232,4 +232,4 @@ Testcontainers is used for:
 
 👨‍💻 **Pavan Kumar V**
 B.E. Computer Science, RV Institute of Technology and Management
-[🔗 GitHub Profile](https://github.com/pkv-woodstock)
+[🔗 GitHub Profile](https://github.com/pavan-kumar-v-pkv)
