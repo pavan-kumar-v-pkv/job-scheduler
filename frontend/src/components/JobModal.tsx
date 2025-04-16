@@ -3,7 +3,7 @@
 import { Dialog } from "@headlessui/react";
 import { useState } from "react";
 import { useEffect } from "react";
-import { Job } from '@/types/Job';
+import { Job } from "@/types/Job";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -28,7 +28,7 @@ export default function JobModal({
   }>({
     jobName: "",
     jobType: "DELAYED",
-    timeZone: "Asia/Kolkata",
+    timeZone: "Asia/Calcutta",
     scheduledTime: "",
     binaryFile: null,
     kafkaTopic: "",
@@ -159,30 +159,75 @@ export default function JobModal({
             )}
 
             {form.jobType === "RECURRING" && (
-              <div>
-                <label className="block mb-1 font-medium">
-                  Cron Expression
-                </label>
-                <input
+              <div className="space-y-2">
+                <label className="block mb-1 font-medium">Recurrence</label>
+                <select
                   className="border p-2 w-full rounded"
-                  name="cronExpression"
-                  placeholder="e.g. 0 * * * * *"
-                  value={form.cronExpression}
-                  onChange={handleChange}
-                  required
-                />
+                  name="recurringOption"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "custom") {
+                      setForm((prev) => ({ ...prev, cronExpression: "" }));
+                    } else {
+                      setForm((prev) => ({
+                        ...prev,
+                        cronExpression:
+                          val === "hourly"
+                            ? "0 0 * * * *"
+                            : val === "daily"
+                            ? "0 0 12 * * *"
+                            : val === "weekly"
+                            ? "0 0 12 * * 1"
+                            : val === "monthly"
+                            ? "0 0 12 1 * *"
+                            : "",
+                      }));
+                    }
+                  }}
+                >
+                  <option value="">Select frequency</option>
+                  <option value="hourly">Hourly</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="custom">Custom</option>
+                </select>
+
+                {form.cronExpression === "" && (
+                  <div>
+                    <input
+                      className="border p-2 w-full rounded mt-2"
+                      name="cronExpression"
+                      placeholder="Enter custom cron expression (e.g., 0 15 10 ? * *)"
+                      value={form.cronExpression}
+                      onChange={handleChange}
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Format: <code>sec min hour day month day-of-week </code>
+                      Example: <code>0 15 10 ? * *</code> → Every day at 10:15
+                      AM
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
             <div>
               <label className="block mb-1 font-medium">Time Zone</label>
-              <input
+              <select
                 className="border p-2 w-full rounded"
                 name="timeZone"
-                value={form.timeZone}
+                value={form.timeZone || "Asia/Calcutta"}
                 onChange={handleChange}
                 required
-              />
+              >
+                {Intl.supportedValuesOf("timeZone").map((tz) => (
+                  <option key={tz} value={tz}>
+                    {tz}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
