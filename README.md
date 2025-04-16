@@ -65,37 +65,13 @@ This is a full-stack job scheduler application. It supports scheduling various t
 
 ## 📁 Project Structure
 
-job-scheduler/
-│
-├── backend/                 # Spring Boot Backend
-│   ├── src/main/java/com/pkv/jobscheduler/
-│   │   ├── controller/      # REST API Controllers
-│   │   ├── service/         # Business Logic
-│   │   ├── model/           # DTOs and Entities
-│   │   ├── repository/      # Spring Data Repositories
-│   │   └── scheduler/       # Job Runner Service
-│   └── resources/
-│       └── application.properties
-│
-├── frontend/                # Next.js Frontend
-│   ├── src/app/             # App Router structure
-│   ├── components/          # JobTable, Sidebar, Modal etc.
-│   └── styles/              # Tailwind + custom styles
-│
-└── README.md                # You’re here!
+![Project Structure](./screenshots/project_structure.png"Project Structure")
 
 ---
 
 ## 🧱 Architecture Overview
 
-[Frontend - React/Next.js]  <—>  [Spring Boot API]
-|                            |
-|                            |
-[MinIO Upload]              [Kafka Producer]
-|
-[Kafka Topic (reminders)]
-|
-[Asynchronous Job Execution]
+![Architecture Overview](./screenshots/architecture_overview.png "Architecture Overview")
 
 ---
 
@@ -142,6 +118,11 @@ java -jar target/jobscheduler-0.0.1-SNAPSHOT.jar
 
 ```bash
 cd frontend
+
+# (Recommended) Ensure correct Node.js version
+nvm install      
+nvm use     
+
 npm install
 npm run dev
 ```
@@ -217,7 +198,7 @@ Testcontainers is used for:
 ![Dashboard Screenshot](./screenshots/dashboard.png "Job Scheduler Dashboard")
 
 ### Modal
-![Dashboard Screenshot](./screenshots/modal.png "Job Scheduler Dashboard")
+![Modal Screenshot](./screenshots/modal.png "Job Scheduler Modal")
 
 ---
 
