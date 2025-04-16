@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { Job } from "@/types/Job";
 import axios from "axios";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 export default function JobModal({
   isOpen,
