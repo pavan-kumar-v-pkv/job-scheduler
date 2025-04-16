@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Job } from "@/types/Job";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import JobModal from "./JobModal";
 
 export default function JobTable() {
