@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* Apply base theme using Tailwind’s dark mode */
 body {
   @apply font-sans;
