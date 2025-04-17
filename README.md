@@ -65,7 +65,7 @@ This is a full-stack job scheduler application. It supports scheduling various t
 
 ## 📁 Project Structure
 
-![Project Structure](./screenshots/project_structure.png"Project Structure")
+![Project Structure](./screenshots/project_structure.png "Project Structure")
 
 ---
 
