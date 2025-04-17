@@ -33,6 +33,28 @@ public class RecurringJobRunnerService {
                 if (next != null &&
                         next.withSecond(0).withNano(0).equals(now.withSecond(0).withNano(0))) {
 
+                    boolean shouldRun = true;
+
+                    // ✅ Weekly check
+                    if (job.getWeekDays() != null && !job.getWeekDays().isEmpty()) {
+                        String today = now.getDayOfWeek().toString(); // e.g., MONDAY
+                        shouldRun = job.getWeekDays().stream()
+                                .map(String::toUpperCase)
+                                .anyMatch(day -> today.equals(day));
+                    }
+
+                    // ✅ Monthly check
+                    if (shouldRun && job.getMonthDates() != null && !job.getMonthDates().isEmpty()) {
+                        int todayDate = now.getDayOfMonth();
+                        shouldRun = job.getMonthDates().contains(todayDate);
+                    }
+
+                    if (!shouldRun) {
+                        System.out.println("🔁 Skipping recurring job ID: " + job.getId() + " (day/date not matched)");
+                        continue;
+                    }
+
+                    // ✅ All conditions passed → run job
                     System.out.println("🔁 Running recurring job ID: " + job.getId() +
                             " at " + now + " → sending to topic: " + job.getKafkaTopic());
 
@@ -42,6 +64,7 @@ public class RecurringJobRunnerService {
                         System.out.println("❌ Failed recurring job ID: " + job.getId());
                         e.printStackTrace();
                     }
+
                 } else {
                     System.out.println("🕒 Skipped job ID: " + job.getId() + " (not time yet)");
                 }

@@ -1,5 +1,7 @@
 package com.pkv.jobscheduler.model;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.ZonedDateTime;
@@ -26,7 +28,6 @@ public class JobSchedule {
 
     @Enumerated(EnumType.STRING)
     private JobStatus status;
-
     private String timeZone;
 
     private ZonedDateTime scheduledTime;
@@ -40,4 +41,15 @@ public class JobSchedule {
     private String metadata; // Custom payload for kafka
 
     private ZonedDateTime createdAt;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "job_week_days")
+    @Column(name = "week_day")
+    private List<String> weekDays;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "job_month_dates")
+    @Column(name = "month_date")
+    private List<Integer> monthDates;
+
 }

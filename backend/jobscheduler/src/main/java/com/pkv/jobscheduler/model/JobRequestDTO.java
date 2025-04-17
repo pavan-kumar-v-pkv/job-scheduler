@@ -1,5 +1,5 @@
 package com.pkv.jobscheduler.model;
-
+import java.util.List;
 import lombok.Data;
 
 // Purpose: Captures user input from the frontend or API request
@@ -16,9 +16,11 @@ public class JobRequestDTO {
     // private String binaryPath;
     private String kafkaTopic;
     private String metadata;
-    private String cronExpression; //optional
-    private String binaryFileName; // new field to store uploaded file name
+    private String cronExpression; 
+    private String binaryFileName; 
     private Integer delayMinutes;
 
+    private List<String> weekDays;     
+    private List<Integer> monthDates;
 
 }

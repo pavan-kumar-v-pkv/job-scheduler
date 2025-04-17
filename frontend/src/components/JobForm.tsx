@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import axios from "axios";
 
 export default function JobForm() {
@@ -24,6 +24,9 @@ export default function JobForm() {
     metadata: "",
     cronExpression: "",
   });
+
+  const [selectedWeekDays, setSelectedWeekDays] = useState<string[]>([]);
+  const [selectedMonthDates, setSelectedMonthDates] = useState<number[]>([]);
 
   const handleChange = (e: any) => {
     const { name, value, files } = e.target;
@@ -67,6 +70,8 @@ export default function JobForm() {
       kafkaTopic: form.kafkaTopic,
       metadata: form.metadata ? JSON.stringify({ msg: form.metadata }) : null,
       cronExpression: form.jobType === "RECURRING" ? form.cronExpression : null,
+      weekDays: form.jobType === "RECURRING" ? selectedWeekDays : [],
+      monthDates: form.jobType === "RECURRING" ? selectedMonthDates : [], 
     };
 
     try {
@@ -136,19 +141,36 @@ export default function JobForm() {
           />
         )}
 
-        {form.jobType === "RECURRING" && (
+{form.jobType === "RECURRING" && (
           <>
-            <input
-              className="border p-2 rounded"
-              name="cronExpression"
-              placeholder="Cron expression (e.g., 0 * * * * *)"
-              value={form.cronExpression}
-              onChange={handleChange}
-              required
-            />
-            <p className="text-xs text-gray-500 ml-1">
-              Runs every minute. Format: sec min hour day month week
-            </p>
+            <input className="border p-2 rounded" name="cronExpression" placeholder="Cron expression (e.g., 0 * * * * *)" value={form.cronExpression} onChange={handleChange} required />
+            <p className="text-xs text-gray-500 ml-1">Runs every minute. Format: sec min hour day month week</p>
+
+            <label className="text-gray-600 font-medium">Select Weekdays (for Weekly Jobs)</label>
+            <div className="flex gap-2 flex-wrap">
+              {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
+                <label key={day} className="flex items-center gap-1">
+                  <input type="checkbox" value={day} checked={selectedWeekDays.includes(day)} onChange={(e) => {
+                    const checked = e.target.checked;
+                    setSelectedWeekDays(prev => checked ? [...prev, day] : prev.filter(d => d !== day));
+                  }} />
+                  {day}
+                </label>
+              ))}
+            </div>
+
+            <label className="text-gray-600 font-medium">Select Dates (for Monthly Jobs)</label>
+            <div className="flex gap-2 flex-wrap">
+              {[...Array(31)].map((_, i) => (
+                <label key={i + 1} className="flex items-center gap-1">
+                  <input type="checkbox" value={i + 1} checked={selectedMonthDates.includes(i + 1)} onChange={(e) => {
+                    const checked = e.target.checked;
+                    setSelectedMonthDates(prev => checked ? [...prev, i + 1] : prev.filter(d => d !== i + 1));
+                  }} />
+                  {i + 1}
+                </label>
+              ))}
+            </div>
           </>
         )}
 
