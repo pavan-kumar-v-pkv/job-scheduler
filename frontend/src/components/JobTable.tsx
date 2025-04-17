@@ -5,6 +5,8 @@ import axios from "axios";
 import { Job } from "@/types/Job";
 import { toast } from "sonner";
 import JobModal from "./JobModal";
+import cronstrue from "cronstrue";
+
 
 export default function JobTable() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -101,13 +103,15 @@ export default function JobTable() {
         <tbody>
           {jobs.length === 0 && (
             <tr>
-            <td colSpan={8} className="py-10 text-center text-gray-500">
-              <div className="flex flex-col items-center space-y-2">
-                <span className="text-3xl">📭</span>
-                <span className="text-sm">No jobs scheduled yet. Click ➕ Create Schedule to add one.</span>
-              </div>
-            </td>
-          </tr>
+              <td colSpan={8} className="py-10 text-center text-gray-500">
+                <div className="flex flex-col items-center space-y-2">
+                  <span className="text-3xl">📭</span>
+                  <span className="text-sm">
+                    No jobs scheduled yet. Click ➕ Create Schedule to add one.
+                  </span>
+                </div>
+              </td>
+            </tr>
           )}
           {jobs
             .filter(
@@ -159,7 +163,14 @@ export default function JobTable() {
                   )}
                 </td>
 
-                <td className="p-2">{job.cronExpression || "-"}</td>
+                <td>
+                  {job.cronExpression
+                    ? cronstrue.toString(job.cronExpression, {
+                        use24HourTimeFormat: true,
+                      })
+                    : "-"}
+                </td>
+
                 <td className="p-2">{job.kafkaTopic}</td>
                 <td className="p-2">
                   {job.binaryPath ? (

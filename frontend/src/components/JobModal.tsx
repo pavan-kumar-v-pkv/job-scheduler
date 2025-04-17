@@ -6,6 +6,18 @@ import { useEffect } from "react";
 import { Job } from "@/types/Job";
 import axios from "axios";
 import { toast } from "sonner";
+import cronstrue from "cronstrue";
+import { CronExpressionParser } from 'cron-parser';
+
+
+const getCronDescription = (expression: string): string => {
+  try {
+    const interval = CronExpressionParser.parse(expression);
+    return cronstrue.toString(expression, { use24HourTimeFormat: true });
+  } catch (error) {
+    return "Invalid cron expression";
+  }
+};
 
 const getCurrentDateTimeString = () => {
   const now = new Date();
@@ -33,6 +45,7 @@ export default function JobModal({
     kafkaTopic: string;
     metadata: string;
     cronExpression: string;
+    recurringOption: string;
   }>({
     jobName: "",
     jobType: "DELAYED",
@@ -43,6 +56,7 @@ export default function JobModal({
     kafkaTopic: "",
     metadata: "",
     cronExpression: "",
+    recurringOption: "",
   });
 
   useEffect(() => {
@@ -56,6 +70,7 @@ export default function JobModal({
         kafkaTopic: editingJob.kafkaTopic,
         metadata: editingJob.metadata || "",
         cronExpression: editingJob.cronExpression || "",
+        recurringOption: editingJob.cronExpression ? "custom" : "",
       });
     } else {
       setForm((prev) => ({
@@ -90,6 +105,21 @@ export default function JobModal({
         binaryFileName = res.data;
       } catch {
         toast.error("File upload failed");
+        return;
+      }
+    }
+
+    // ✅ Cron expression validation
+    if (form.jobType === "RECURRING") {
+      const cronRegex = /^([\d*/?,-]+ ){5}([\d*/?,-]+)$/;
+
+      if (!form.cronExpression.trim()) {
+        toast.error("Please enter a cron expression.");
+        return;
+      }
+
+      if (!cronRegex.test(form.cronExpression.trim())) {
+        toast.error("Invalid cron expression. Expected 6 valid fields.");
         return;
       }
     }
@@ -212,23 +242,22 @@ export default function JobModal({
                   name="recurringOption"
                   onChange={(e) => {
                     const val = e.target.value;
-                    if (val === "custom") {
-                      setForm((prev) => ({ ...prev, cronExpression: "" }));
-                    } else {
-                      setForm((prev) => ({
-                        ...prev,
-                        cronExpression:
-                          val === "hourly"
-                            ? "0 0 * * * *"
-                            : val === "daily"
-                            ? "0 0 12 * * *"
-                            : val === "weekly"
-                            ? "0 0 12 * * 1"
-                            : val === "monthly"
-                            ? "0 0 12 1 * *"
-                            : "",
-                      }));
-                    }
+                    setForm((prev) => ({
+                      ...prev,
+                      recurringOption: val,
+                      cronExpression:
+                        val === "custom"
+                          ? ""
+                          : val === "hourly"
+                          ? "0 0 * * * *"
+                          : val === "daily"
+                          ? "0 0 12 * * *"
+                          : val === "weekly"
+                          ? "0 0 12 * * 1"
+                          : val === "monthly"
+                          ? "0 0 12 1 * *"
+                          : "",
+                    }));
                   }}
                 >
                   <option value="">Select frequency</option>
@@ -239,23 +268,29 @@ export default function JobModal({
                   <option value="custom">Custom</option>
                 </select>
 
-                {form.cronExpression === "" && (
-                  <div>
-                    <input
-                      className="border p-2 w-full rounded mt-2"
-                      name="cronExpression"
-                      placeholder="Enter custom cron expression (e.g., 0 15 10 ? * *)"
-                      value={form.cronExpression}
-                      onChange={handleChange}
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Format: <code>sec min hour day month day-of-week </code>
-                      Example: <code>0 15 10 ? * *</code> → Every day at 10:15
-                      AM
-                    </p>
-                  </div>
-                )}
+                {form.jobType === "RECURRING" &&
+                  form.recurringOption === "custom" && (
+                    <div>
+                      <label className="block mb-1 font-medium">
+                        Custom Cron Expression
+                      </label>
+                      <input
+                        className="border p-2 w-full rounded mt-2"
+                        name="cronExpression"
+                        placeholder="Enter custom cron expression (e.g., 0 15 10 ? * *)"
+                        value={form.cronExpression}
+                        onChange={handleChange}
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getCronDescription(form.cronExpression)}
+                        Format: <code>sec min hour day month day-of-week</code>
+                        <br />
+                        Example: <code>0 15 10 ? * *</code> → Every day at 10:15
+                        AM
+                      </p>
+                    </div>
+                  )}
               </div>
             )}
 
