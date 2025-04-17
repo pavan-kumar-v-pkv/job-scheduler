@@ -18,5 +18,7 @@ public class JobRequestDTO {
     private String metadata;
     private String cronExpression; //optional
     private String binaryFileName; // new field to store uploaded file name
+    private Integer delayMinutes;
+
 
 }

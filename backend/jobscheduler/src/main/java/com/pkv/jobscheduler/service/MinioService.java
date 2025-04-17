@@ -1,6 +1,8 @@
 package com.pkv.jobscheduler.service;
 
 import io.minio.*;
+import jakarta.annotation.PostConstruct;
+
 // import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,21 @@ public class MinioService {
 
     public MinioService(MinioClient minioClient) {
         this.minioClient = minioClient;
+    }
+
+    @PostConstruct
+    public void initBucket() {
+        try {
+            boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
+            if (!found) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+                System.out.println("✅ Bucket created: " + bucket);
+            } else {
+                System.out.println("✅ Bucket exists: " + bucket);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("❌ Failed to initialize bucket: " + e.getMessage(), e);
+        }
     }
 
     public String uploadFile(MultipartFile file) throws Exception {

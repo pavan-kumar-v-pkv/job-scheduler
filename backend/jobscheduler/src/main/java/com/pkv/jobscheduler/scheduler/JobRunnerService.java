@@ -36,12 +36,12 @@ public class JobRunnerService {
                 try {
                     job.setStatus(JobStatus.RUNNING);
                     jobRepo.save(job);
-
-                    kafkaTemplate.send(job.getKafkaTopic(), job.getMetadata())
+                    String topic = job.getKafkaTopic().trim();
+                    kafkaTemplate.send(topic, job.getMetadata())
                             .whenComplete((result, ex) -> {
                                 if (ex == null) {
                                     System.out.println("✅ [IMMEDIATE] Kafka message sent for job ID: " + job.getId()
-                                            + " to topic: " + job.getKafkaTopic());
+                                            + " to topic: " + topic);
                                     System.out.println("📨 Message: " + job.getMetadata());
 
                                     job.setStatus(JobStatus.SUCCESS);
@@ -74,11 +74,12 @@ public class JobRunnerService {
                     jobRepo.save(job);
 
                     if (job.getJobType() == JobType.DELAYED) {
-                        kafkaTemplate.send(job.getKafkaTopic(), job.getMetadata())
+                        String topic = job.getKafkaTopic().trim();
+                        kafkaTemplate.send(topic, job.getMetadata())
                                 .whenComplete((result, ex) -> {
                                     if (ex == null) {
                                         System.out.println("✅ Kafka message sent for job ID: " + job.getId()
-                                                + " to topic: " + job.getKafkaTopic());
+                                                + " to topic: " + topic);
                                         System.out.println("📨 Message: " + job.getMetadata());
 
                                         job.setStatus(JobStatus.SUCCESS);
