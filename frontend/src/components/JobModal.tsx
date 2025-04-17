@@ -7,6 +7,13 @@ import { Job } from "@/types/Job";
 import axios from "axios";
 import { toast } from "sonner";
 
+const getCurrentDateTimeString = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  const local = new Date(now.getTime() - offset * 60000);
+  return local.toISOString().slice(0, 16); // ✅ this avoids Zulu time
+};
+
 export default function JobModal({
   isOpen,
   onClose,
@@ -21,6 +28,7 @@ export default function JobModal({
     jobType: string;
     timeZone: string;
     scheduledTime: string;
+    delayMinutes?: number;
     binaryFile: File | null;
     kafkaTopic: string;
     metadata: string;
@@ -30,6 +38,7 @@ export default function JobModal({
     jobType: "DELAYED",
     timeZone: "Asia/Calcutta",
     scheduledTime: "",
+    delayMinutes: 5,
     binaryFile: null,
     kafkaTopic: "",
     metadata: "",
@@ -48,6 +57,12 @@ export default function JobModal({
         metadata: editingJob.metadata || "",
         cronExpression: editingJob.cronExpression || "",
       });
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        scheduledTime:
+          prev.jobType === "ONE_TIME" ? getCurrentDateTimeString() : "",
+      }));
     }
   }, [editingJob]);
 
@@ -85,8 +100,9 @@ export default function JobModal({
       timeZone: form.timeZone,
       scheduledTime: form.jobType !== "RECURRING" ? form.scheduledTime : null,
       cronExpression: form.jobType === "RECURRING" ? form.cronExpression : null,
+      delayMinutes: form.jobType === "DELAYED" ? form.delayMinutes : null,
       binaryFileName,
-      kafkaTopic: form.kafkaTopic,
+      kafkaTopic: form.kafkaTopic.trim(),
       metadata: form.metadata ? JSON.stringify({ msg: form.metadata }) : null,
     };
 
@@ -144,7 +160,7 @@ export default function JobModal({
               </select>
             </div>
 
-            {(form.jobType === "ONE_TIME" || form.jobType === "DELAYED") && (
+            {form.jobType === "ONE_TIME" && (
               <div>
                 <label className="block mb-1 font-medium">Scheduled Time</label>
                 <input
@@ -154,6 +170,36 @@ export default function JobModal({
                   value={form.scheduledTime}
                   onChange={handleChange}
                   required
+                />
+              </div>
+            )}
+
+            {form.jobType === "DELAYED" && (
+              <div>
+                <label className="block mb-1 font-medium">
+                  Delay Duration (minutes)
+                </label>
+                <input
+                  type="number"
+                  className="border p-2 w-full rounded"
+                  name="delayMinutes"
+                  min="1"
+                  placeholder="e.g. 10"
+                  value={form.delayMinutes}
+                  onChange={(e) => {
+                    const minutes = parseInt(e.target.value || "0");
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() + minutes);
+                    const local = new Date(
+                      now.getTime() - now.getTimezoneOffset() * 60000
+                    );
+                    const isoString = local.toISOString().slice(0, 16);
+                    setForm((prev) => ({
+                      ...prev,
+                      delayMinutes: minutes,
+                      scheduledTime: isoString,
+                    }));
+                  }}
                 />
               </div>
             )}
